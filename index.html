@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interface de gestion</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        display: flex;
+        min-height: 100vh;
+        background: #f4f6f8;
+      }
+
+      .sidebar {
+        width: 280px;
+        background-color: #2e7d32;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .menu {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .menu-button {
+        background-color: #5d4037;
+        color: #fff;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .menu-button:hover {
+        background-color: #4e342e;
+      }
+
+      .interface-title {
+        background: none;
+        color: #fff;
+        font-size: 26px;
+        font-weight: bold;
+        padding: 10px 0;
+        text-align: center;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .info-button {
+        background-color: #1e88e5;
+        color: #fff;
+        font-size: 24px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        border: none;
+        align-self: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .info-button:hover {
+        background-color: #1565c0;
+      }
+
+      .main {
+        flex: 1;
+        padding: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .logo img {
+        height: 200px;
+      }
+
+      .header-box {
+        font-size: 36px;
+        font-weight: bold;
+        color: #2e7d32;
+        margin-bottom: 20px;
+        display: block;
+        text-align: center;
+        background-color: #d0f0c0;
+        padding: 15px;
+        border-radius: 12px;
+      }
+
+      .title {
+        font-size: 28px;
+        text-align: center;
+        color: #333;
+        line-height: 1.8;
+      }
+
+      .login-form {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        padding: 40px;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .login-form input {
+        padding: 10px;
+        width: 250px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+
+      .login-form button {
+        background-color: #2e7d32;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .create-account {
+        background-color: #ff9800;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .create-account:hover {
+        background-color: #fb8c00;
+      }
+
+      .lang-switch {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .lang-switch button {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 12px;
+        background-color: #1976d2;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
+
+      .lang-switch button:hover {
+        background-color: #125ea6;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 400px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+      }
+
+      @media (max-width: 768px) {
+        .main {
+          padding: 30px 20px;
+        }
+        .header-box {
+          font-size: 24px;
+          padding: 30px;
+        }
+        .sidebar {
+          width: 100%;
+          flex-direction: row;
+          flex-wrap: wrap;
+          height: auto;
+          padding: 10px;
+        }
+        .menu-button,
+        .info-button {
+          flex: 1;
+          margin: 5px;
+        }
+        .logo img {
+          height: 100px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lang-switch">
+      <button onclick="setLanguage('fr')">Français</button>
+      <button onclick="setLanguage('ar')">عربي</button>
+    </div>
+    <div class="sidebar">
+      <div class="menu">
+        <div
+          class="interface-title"
+          data-fr="Gestion d’interface"
+          data-ar="إدارة الواجهة"
+        >
+          Gestion d’interface
+        </div>
+        <button
+          class="menu-button"
+          onclick="showLogin('Direction', 'Direction.html')"
+          data-fr="Direction"
+          data-ar="الإدارة"
+        >
+          Direction
+        </button>
+        <button
+          class="menu-button"
+          onclick="showLogin('Secrétariat', 'Secretariat.html')"
+          data-fr="Secrétariat"
+          data-ar="السكرتارية"
+        >
+          Secrétariat
+        </button>
+        <button
+          class="menu-button"
+          onclick="showLogin('Comptabilité', 'Comptabilite.html')"
+          data-fr="Comptabilité"
+          data-ar="المحاسبة"
+        >
+          Comptabilité
+        </button>
+        <button
+          class="menu-button"
+          onclick="showLogin('Orphelinat', 'Orphelinat.html')"
+          data-fr="Orphelinat"
+          data-ar="دار الأيتام"
+        >
+          Orphelinat
+        </button>
+        <button
+          class="menu-button"
+          onclick="showLogin('Pharmacie', 'Pharmacie.html')"
+          data-fr="Pharmacie"
+          data-ar="الصيدلية"
+        >
+          Pharmacie
+        </button>
+        <button
+          class="menu-button"
+          onclick="showLogin('Stock', 'Stock.html')"
+          data-fr="Stock"
+          data-ar="المخزون"
+        >
+          Stock
+        </button>
+      </div>
+      <button class="info-button" onclick="openModal()">i</button>
+    </div>
+    <div class="main">
+      <div class="logo">
+        <img src="image2.png" alt="Logo DirectAid" />
+      </div>
+      <div
+        class="header-box"
+        id="mainHeader"
+        data-fr="Gestion des services centralisée"
+        data-ar="إدارة الخدمات المركزية"
+      >
+        Gestion des services centralisée
+      </div>
+      <div class="title" id="mainTitle">
+        Direction de l'Orphelinat et des Services Sociaux
+      </div>
+      <div class="login-form" id="loginForm">
+        <h2 data-fr="Connexion" data-ar="تسجيل الدخول">Connexion</h2>
+        <input type="text" id="username" placeholder="Identifiant" />
+        <input type="password" id="password" placeholder="Mot de passe" />
+        <button
+          onclick="handleLogin()"
+          data-fr="Se connecter"
+          data-ar="تسجيل الدخول"
+        >
+          Se connecter
+        </button>
+        <button
+          class="create-account"
+          onclick="createAccount()"
+          data-fr="Créer un compte"
+          data-ar="إنشاء حساب"
+        >
+          Créer un compte
+        </button>
+      </div>
+    </div>
+
+    <div id="infoModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>À propos</h2>
+        <p>
+          Bienvenue sur le système de gestion centralisée des services sociaux.
+          Ce portail est réservé aux utilisateurs autorisés.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      let redirectTo = "";
+
+      function showLogin(service, targetPage) {
+        document.getElementById(
+          "mainTitle"
+        ).innerHTML = `Connexion à l'espace <strong>${service}</strong>`;
+        document.getElementById("loginForm").style.display = "flex";
+        redirectTo = targetPage;
+      }
+
+      function handleLogin() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        if (username === "admin" && password === "1234") {
+          alert("Connexion réussie. Redirection vers la fenêtre de gestion...");
+          window.location.href = redirectTo;
+        } else {
+          alert("Identifiant ou mot de passe incorrect.");
+        }
+      }
+
+      function createAccount() {
+        alert("Fonctionnalité de création de compte à venir.");
+      }
+
+      function setLanguage(lang) {
+        const translatable = document.querySelectorAll("[data-fr]");
+        translatable.forEach((el) => {
+          el.innerHTML = el.getAttribute(`data-${lang}`);
+        });
+      }
+
+      function openModal() {
+        document.getElementById("infoModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("infoModal").style.display = "none";
+      }
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("infoModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+    </script>
+  </body>
+</html>

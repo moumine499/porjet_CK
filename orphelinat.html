@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion Orphelinat</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-center w-full" id="title">
+          Tableau de Bord - Orphelinat
+        </h1>
+        <select id="lang-switch" class="p-2 border rounded ml-4">
+          <option value="fr">Français</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+
+      <!-- Formulaire d'enregistrement -->
+      <form
+        id="enfant-form"
+        class="bg-white p-6 rounded shadow-md mb-6 grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <input
+          type="text"
+          id="identifiant"
+          placeholder="Identifiant"
+          required
+          class="p-2 border rounded"
+        />
+        <input
+          type="text"
+          id="nom"
+          placeholder="Nom complet"
+          required
+          class="p-2 border rounded"
+        />
+        <input
+          type="date"
+          id="date-naissance"
+          required
+          class="p-2 border rounded"
+        />
+        <input
+          type="number"
+          id="age"
+          placeholder="Âge (automatique)"
+          disabled
+          class="p-2 border rounded bg-gray-100"
+        />
+        <select id="sexe" required class="p-2 border rounded">
+          <option value="">-- Sexe --</option>
+          <option value="Masculin">Masculin</option>
+          <option value="Féminin">Féminin</option>
+        </select>
+        <input
+          type="text"
+          id="groupe-sanguin"
+          placeholder="Groupe sanguin"
+          class="p-2 border rounded"
+        />
+        <input
+          type="text"
+          id="situation"
+          placeholder="Situation familiale"
+          class="p-2 border rounded"
+        />
+        <input
+          type="text"
+          id="niveau"
+          placeholder="Niveau d'étude"
+          class="p-2 border rounded"
+        />
+        <input
+          type="text"
+          id="surconstance"
+          placeholder="Surconstance d'admission"
+          class="p-2 border rounded"
+        />
+        <input
+          type="date"
+          id="date-entree"
+          required
+          class="p-2 border rounded"
+        />
+        <button
+          type="submit"
+          class="bg-blue-500 text-white p-2 rounded col-span-1 md:col-span-2"
+        >
+          Ajouter
+        </button>
+      </form>
+
+      <!-- Barre de recherche -->
+      <input
+        type="text"
+        id="search"
+        placeholder="Rechercher un enfant..."
+        class="mb-4 p-2 w-full border rounded"
+      />
+
+      <!-- Boutons export -->
+      <div class="mb-4 flex gap-2">
+        <button
+          onclick="exportExcel()"
+          class="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Exporter Excel
+        </button>
+        <button
+          onclick="exportPDF()"
+          class="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Exporter PDF
+        </button>
+      </div>
+
+      <!-- Tableau -->
+      <div class="overflow-x-auto">
+        <table
+          class="min-w-full bg-white shadow-md rounded"
+          id="table-orphelins"
+        >
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="p-2 text-left">ID</th>
+              <th class="p-2 text-left">Nom</th>
+              <th class="p-2 text-left">Date de naissance</th>
+              <th class="p-2 text-left">Âge</th>
+              <th class="p-2 text-left">Sexe</th>
+              <th class="p-2 text-left">Groupe Sanguin</th>
+              <th class="p-2 text-left">Situation</th>
+              <th class="p-2 text-left">Niveau</th>
+              <th class="p-2 text-left">Surconstance</th>
+              <th class="p-2 text-left">Date d'entrée</th>
+              <th class="p-2 text-left">Ancienneté</th>
+              <th class="p-2 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody id="liste-enfants"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("enfant-form");
+      const tableBody = document.getElementById("liste-enfants");
+      const search = document.getElementById("search");
+      const langSwitch = document.getElementById("lang-switch");
+      const dateNaissance = document.getElementById("date-naissance");
+      const ageInput = document.getElementById("age");
+
+      dateNaissance.addEventListener("change", () => {
+        ageInput.value = calculerAge(dateNaissance.value);
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById("identifiant").value;
+        const nom = document.getElementById("nom").value;
+        const naissance = dateNaissance.value;
+        const age = calculerAge(naissance);
+        const sexe = document.getElementById("sexe").value;
+        const groupe = document.getElementById("groupe-sanguin").value;
+        const situation = document.getElementById("situation").value;
+        const niveau = document.getElementById("niveau").value;
+        const surconstance = document.getElementById("surconstance").value;
+        const dateEntree = document.getElementById("date-entree").value;
+        const anciennete = calculerAnciennete(dateEntree);
+
+        const row = document.createElement("tr");
+        row.className = "border-t";
+        row.innerHTML = `
+          <td class="p-2">${id}</td>
+          <td class="p-2">${nom}</td>
+          <td class="p-2">${naissance}</td>
+          <td class="p-2">${age}</td>
+          <td class="p-2">${sexe}</td>
+          <td class="p-2">${groupe}</td>
+          <td class="p-2">${situation}</td>
+          <td class="p-2">${niveau}</td>
+          <td class="p-2">${surconstance}</td>
+          <td class="p-2">${dateEntree}</td>
+          <td class="p-2">${anciennete}</td>
+          <td class="p-2 text-center">
+            <button onclick="editerLigne(this)" class="text-blue-500 hover:text-blue-700">✏️</button>
+            <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700 ml-2">🗑</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+        form.reset();
+      });
+
+      function calculerAge(dateNaissance) {
+        const naissance = new Date(dateNaissance);
+        const maintenant = new Date();
+        let age = maintenant.getFullYear() - naissance.getFullYear();
+        const mois = maintenant.getMonth() - naissance.getMonth();
+        if (
+          mois < 0 ||
+          (mois === 0 && maintenant.getDate() < naissance.getDate())
+        ) {
+          age--;
+        }
+        return age;
+      }
+
+      function calculerAnciennete(dateEntree) {
+        const entree = new Date(dateEntree);
+        const maintenant = new Date();
+        let annees = maintenant.getFullYear() - entree.getFullYear();
+        let mois = maintenant.getMonth() - entree.getMonth();
+        if (mois < 0) {
+          annees--;
+          mois += 12;
+        }
+        if (annees === 0 && mois === 0) return "Moins d’un mois";
+        if (annees === 0) return `${mois} mois`;
+        if (mois === 0) return `${annees} ans`;
+        return `${annees} ans ${mois} mois`;
+      }
+
+      function editerLigne(btn) {
+        const row = btn.closest("tr");
+        const cells = row.querySelectorAll("td");
+        document.getElementById("identifiant").value = cells[0].textContent;
+        document.getElementById("nom").value = cells[1].textContent;
+        document.getElementById("date-naissance").value = cells[2].textContent;
+        document.getElementById("sexe").value = cells[4].textContent;
+        document.getElementById("groupe-sanguin").value = cells[5].textContent;
+        document.getElementById("situation").value = cells[6].textContent;
+        document.getElementById("niveau").value = cells[7].textContent;
+        document.getElementById("surconstance").value = cells[8].textContent;
+        document.getElementById("date-entree").value = cells[9].textContent;
+        ageInput.value = calculerAge(cells[2].textContent);
+        row.remove();
+      }
+
+      function exportExcel() {
+        const wb = XLSX.utils.table_to_book(
+          document.querySelector("#table-orphelins"),
+          { sheet: "Orphelins" }
+        );
+        XLSX.writeFile(wb, "orphelinat.xlsx");
+      }
+
+      function exportPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Tableau de Bord - Orphelinat", 10, 10);
+        doc.autoTable({ html: "#table-orphelins", startY: 20 });
+        doc.save("orphelinat.pdf");
+      }
+
+      search.addEventListener("input", () => {
+        const filter = search.value.toLowerCase();
+        const rows = tableBody.getElementsByTagName("tr");
+        for (let row of rows) {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(filter) ? "" : "none";
+        }
+      });
+
+      langSwitch.addEventListener("change", () => {
+        const lang = langSwitch.value;
+        const title = document.getElementById("title");
+        title.textContent =
+          lang === "ar"
+            ? "لوحة إدارة دار الأيتام"
+            : "Tableau de Bord - Orphelinat";
+      });
+    </script>
+  </body>
+</html>

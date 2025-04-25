@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Comptable - Centre Koweïtien</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+        background-color: #f4f6f8;
+      }
+
+      header {
+        background-color: #0a4d8c;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 1.6rem;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 2rem auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 0.2rem;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+
+      input:focus,
+      select:focus,
+      button:focus {
+        outline: 2px solid #0a4d8c;
+        outline-offset: 2px;
+      }
+
+      button {
+        background-color: #0a4d8c;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #083b6b;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #eaf1f8;
+        color: #0a4d8c;
+      }
+
+      .synthese {
+        display: flex;
+        justify-content: space-between;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .card {
+        flex: 1;
+        padding: 1rem;
+        background-color: #f0f8ff;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .footer {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #888;
+        margin-top: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .synthese {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>💰 Interface Comptable - Centre Koweïtien</header>
+
+    <div class="container">
+      <h2>➕ Ajouter une opération</h2>
+      <form id="form-op">
+        <label for="date-op">Date</label>
+        <input type="date" id="date-op" required />
+        <label for="type-op">Type</label>
+        <select id="type-op" required>
+          <option value="">Type d'opération</option>
+          <option value="recette">Recette</option>
+          <option value="dépense">Dépense</option>
+        </select>
+        <label for="desc-op">Description</label>
+        <input
+          type="text"
+          id="desc-op"
+          placeholder="Description de l'opération"
+          required
+        />
+        <label for="montant-op">Montant (FCFA)</label>
+        <input type="number" id="montant-op" placeholder="Montant" required />
+        <button type="submit">💾 Enregistrer</button>
+      </form>
+
+      <h2>📊 Tableau des opérations</h2>
+      <table id="table-op">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Montant</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>15/04/2025</td>
+            <td>Recette</td>
+            <td>Don d’une ONG</td>
+            <td>250 000 FCFA</td>
+            <td><button onclick="supprimerLigne(this)">🗑</button></td>
+          </tr>
+          <tr>
+            <td>14/04/2025</td>
+            <td>Dépense</td>
+            <td>Achat fournitures scolaires</td>
+            <td>80 000 FCFA</td>
+            <td><button onclick="supprimerLigne(this)">🗑</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="synthese">
+        <div class="card">
+          <h3>💵 Total Recettes</h3>
+          <p id="total-recettes" aria-live="polite">250000</p>
+        </div>
+        <div class="card">
+          <h3>💸 Total Dépenses</h3>
+          <p id="total-depenses" aria-live="polite">80000</p>
+        </div>
+        <div class="card">
+          <h3>🧮 Solde Disponible</h3>
+          <p id="solde" aria-live="polite">170000</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem">
+        <button onclick="exporterExcel()">📥 Exporter en Excel</button>
+        <button onclick="alert('Données envoyées au Directeur')">
+          📨 Envoyer au Directeur
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">© 2025 Centre Koweïtien - Service Comptable</div>
+
+    <script>
+      const form = document.getElementById("form-op");
+      const table = document.getElementById("table-op").querySelector("tbody");
+      let totalRecettes = 250000;
+      let totalDepenses = 80000;
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const date = document.getElementById("date-op").value;
+        const type = document.getElementById("type-op").value;
+        const desc = document.getElementById("desc-op").value.trim();
+        const montant = parseFloat(document.getElementById("montant-op").value);
+
+        if (!date || !type || !desc || isNaN(montant) || montant <= 0) {
+          alert("Veuillez remplir correctement tous les champs.");
+          return;
+        }
+
+        const formattedDate = new Date(date).toLocaleDateString("fr-FR");
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+          <td>${formattedDate}</td>
+          <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+          <td>${desc}</td>
+          <td>${montant.toLocaleString()} FCFA</td>
+          <td><button onclick="supprimerLigne(this)">🗑</button></td>
+        `;
+        table.appendChild(newRow);
+
+        if (type === "recette") totalRecettes += montant;
+        else totalDepenses += montant;
+
+        majSynthese();
+        form.reset();
+      });
+
+      function supprimerLigne(btn) {
+        const row = btn.closest("tr");
+        const montantStr = row.children[3].textContent
+          .replace(" FCFA", "")
+          .replace(/\s/g, "");
+        const type = row.children[1].textContent.toLowerCase();
+        const montant = parseFloat(montantStr);
+
+        if (type === "recette") totalRecettes -= montant;
+        else totalDepenses -= montant;
+
+        row.remove();
+        majSynthese();
+      }
+
+      function majSynthese() {
+        document.getElementById("total-recettes").textContent =
+          totalRecettes.toLocaleString();
+        document.getElementById("total-depenses").textContent =
+          totalDepenses.toLocaleString();
+        document.getElementById("solde").textContent = (
+          totalRecettes - totalDepenses
+        ).toLocaleString();
+      }
+
+      function exporterExcel() {
+        let tableHTML = document
+          .getElementById("table-op")
+          .outerHTML.replace(/ /g, "%20");
+        const dataType = "application/vnd.ms-excel";
+        const fileName = "rapport_comptable.xls";
+        const downloadLink = document.createElement("a");
+        document.body.appendChild(downloadLink);
+
+        downloadLink.href = "data:" + dataType + ", " + tableHTML;
+        downloadLink.download = fileName;
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      }
+    </script>
+  </body>
+</html>

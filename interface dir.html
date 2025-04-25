@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Directeur - Centre Koweïtien</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f4f6f8;
+        direction: ltr;
+      }
+
+      header {
+        background-color: #0a4d8c;
+        color: white;
+        padding: 1rem 2rem;
+        text-align: center;
+        font-size: 1.5rem;
+      }
+
+      .language-toggle {
+        text-align: center;
+        margin: 1rem;
+      }
+
+      .container {
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card h3 {
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        color: #0a4d8c;
+      }
+
+      .alert {
+        background-color: #ffdddd;
+        color: #a94442;
+        border-left: 5px solid #d9534f;
+        padding: 1rem;
+        margin-top: 1rem;
+        border-radius: 5px;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.9rem;
+        color: #888;
+        margin-top: 2rem;
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        background-color: #0a4d8c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #083a6a;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="title">
+      Tableau de Bord - Directeur du Centre Koweïtien de Moundou
+    </header>
+
+    <div class="language-toggle">
+      <button onclick="toggleLang()">🌐 Français / عربي</button>
+    </div>
+
+    <div class="container">
+      <div class="card" id="comptabilite">
+        <h3 id="titreCompta">📊 Service Comptable</h3>
+        <p id="entrees">Total Entrées : --</p>
+        <p id="depenses">Total Dépenses : --</p>
+      </div>
+
+      <div class="card" id="secretariat">
+        <h3 id="titreSec">📁 Secrétariat</h3>
+        <p id="courriers">Courriers à traiter : --</p>
+        <p id="rdv">Rendez-vous du jour : --</p>
+      </div>
+
+      <div class="card" id="pharmacie">
+        <h3 id="titrePharma">💊 Pharmacie</h3>
+        <p id="stock">Médicaments en stock : --</p>
+        <div class="alert" id="alertePharma" style="display: none">
+          ⚠️ Médicaments à réapprovisionner : <span id="manque"></span>
+        </div>
+      </div>
+
+      <div class="card" id="orphelinat">
+        <h3 id="titreOrph">👶 Orphelinat</h3>
+        <p id="enfants">Enfants suivis : --</p>
+        <p id="dons">Dons reçus ce mois : --</p>
+      </div>
+    </div>
+
+    <div class="footer" id="footer">
+      © 2025 Centre Koweïtien de Moundou - Tous droits réservés.
+    </div>
+
+    <script>
+      const donnees = {
+        comptabilite: { entrees: 3000000, depenses: 1200000 },
+        secretariat: { courriers: 4, rdv: 2 },
+        pharmacie: {
+          stock: 42,
+          ruptures: ["Paracétamol", "Amoxicilline"],
+        },
+        orphelinat: { enfants: 35, dons: 450000 },
+      };
+
+      const traductions = {
+        fr: {
+          title: "Tableau de Bord - Directeur du Centre Koweïtien de Moundou",
+          compta: "📊 Service Comptable",
+          entrees: `Total Entrées : ${donnees.comptabilite.entrees.toLocaleString()} FCFA`,
+          depenses: `Total Dépenses : ${donnees.comptabilite.depenses.toLocaleString()} FCFA`,
+          sec: "📁 Secrétariat",
+          courriers: `Courriers à traiter : ${donnees.secretariat.courriers}`,
+          rdv: `Rendez-vous du jour : ${donnees.secretariat.rdv}`,
+          pharma: "💊 Pharmacie",
+          stock: `Médicaments en stock : ${donnees.pharmacie.stock}`,
+          alerte: `⚠️ Médicaments à réapprovisionner : ${donnees.pharmacie.ruptures.join(
+            ", "
+          )}`,
+          orph: "👶 Orphelinat",
+          enfants: `Enfants suivis : ${donnees.orphelinat.enfants}`,
+          dons: `Dons reçus ce mois : ${donnees.orphelinat.dons.toLocaleString()} FCFA`,
+          footer: "© 2025 Centre Koweïtien de Moundou - Tous droits réservés.",
+        },
+        ar: {
+          title: "لوحة التحكم - مدير المركز الكويتي بموندو",
+          compta: "📊 القسم المالي",
+          entrees: `إجمالي المداخيل : ${donnees.comptabilite.entrees.toLocaleString()} فرنك`,
+          depenses: `إجمالي المصاريف : ${donnees.comptabilite.depenses.toLocaleString()} فرنك`,
+          sec: "📁 السكرتارية",
+          courriers: `الرسائل المطلوب معالجتها : ${donnees.secretariat.courriers}`,
+          rdv: `مواعيد اليوم : ${donnees.secretariat.rdv}`,
+          pharma: "💊 الصيدلية",
+          stock: `الأدوية المتوفرة : ${donnees.pharmacie.stock}`,
+          alerte: `⚠️ أدوية تحتاج للتزويد : ${donnees.pharmacie.ruptures.join(
+            ", "
+          )}`,
+          orph: "👶 دار الأيتام",
+          enfants: `الأطفال المتابعين : ${donnees.orphelinat.enfants}`,
+          dons: `التبرعات المستلمة هذا الشهر : ${donnees.orphelinat.dons.toLocaleString()} فرنك`,
+          footer: "© 2025 المركز الكويتي بموندو - جميع الحقوق محفوظة.",
+        },
+      };
+
+      let currentLang = "fr";
+
+      function toggleLang() {
+        currentLang = currentLang === "fr" ? "ar" : "fr";
+        const t = traductions[currentLang];
+
+        document.documentElement.lang = currentLang;
+        document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+
+        document.getElementById("title").textContent = t.title;
+        document.getElementById("titreCompta").textContent = t.compta;
+        document.getElementById("entrees").textContent = t.entrees;
+        document.getElementById("depenses").textContent = t.depenses;
+        document.getElementById("titreSec").textContent = t.sec;
+        document.getElementById("courriers").textContent = t.courriers;
+        document.getElementById("rdv").textContent = t.rdv;
+        document.getElementById("titrePharma").textContent = t.pharma;
+        document.getElementById("stock").textContent = t.stock;
+
+        if (donnees.pharmacie.ruptures.length > 0) {
+          document.getElementById("alertePharma").style.display = "block";
+          document.getElementById("alertePharma").textContent = t.alerte;
+        }
+
+        document.getElementById("titreOrph").textContent = t.orph;
+        document.getElementById("enfants").textContent = t.enfants;
+        document.getElementById("dons").textContent = t.dons;
+        document.getElementById("footer").textContent = t.footer;
+      }
+
+      // Initialiser avec les données françaises
+      toggleLang(); // ou commente cette ligne pour commencer en FR
+      toggleLang(); // double pour revenir au FR par défaut
+    </script>
+  </body>
+</html>

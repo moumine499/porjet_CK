@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion Stock - Pharmacie</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+        margin: 0;
+        padding: 0;
+      }
+
+      header {
+        background-color: #0a4d8c;
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        font-size: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        color: #0a4d8c;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+        text-align: center;
+        padding: 10px;
+        background-color: #eaf1f8;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 2rem;
+      }
+
+      th,
+      td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #eaf1f8;
+        color: #0a4d8c;
+      }
+
+      .alert {
+        color: #d93025;
+        font-weight: bold;
+      }
+
+      .stock-ok {
+        color: green;
+        font-weight: bold;
+      }
+
+      .footer {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #888;
+        margin-top: 2rem;
+      }
+
+      /* Formulaire Stylisé */
+      #stockForm {
+        background-color: #f1f3f5;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+      }
+
+      #stockForm input[type="text"],
+      #stockForm input[type="number"] {
+        width: 100%;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+      }
+
+      #stockForm button {
+        background-color: #0a4d8c;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+
+      #stockForm button:hover {
+        background-color: #084a75;
+      }
+
+      #stockForm button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        table {
+          font-size: 0.9rem;
+        }
+
+        #stockForm button {
+          width: 100%;
+          margin-top: 1rem;
+        }
+      }
+    </style>
+
+    <!-- Bibliothèques pour l'export en Excel et PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <span id="headerTitle"
+        >💊 Gestion de Stock - Pharmacie du Centre Koweïtien</span
+      >
+      <button onclick="switchLanguage('fr')">français</button>
+      <button onclick="switchLanguage('ar')">العربية</button>
+    </header>
+
+    <div class="container">
+      <h2 id="listTitle">Liste des Médicaments en Stock</h2>
+      <table id="stockTable">
+        <thead>
+          <tr>
+            <th id="medNameHeader">Nom du médicament</th>
+            <th id="quantityHeader">Quantité</th>
+            <th id="minThresholdHeader">Seuil minimum</th>
+            <th id="statusHeader">Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Table rows will be inserted dynamically -->
+        </tbody>
+      </table>
+
+      <form id="stockForm">
+        <h3 id="formTitle">Ajouter un médicament</h3>
+        <label for="medName">Nom du médicament:</label>
+        <input type="text" id="medName" required /><br /><br />
+        <label for="quantity">Quantité:</label>
+        <input type="number" id="quantity" required /><br /><br />
+        <label for="minThreshold">Seuil minimum:</label>
+        <input type="number" id="minThreshold" required /><br /><br />
+        <button type="button" id="addMedBtn">Ajouter</button>
+        <button type="button" id="deleteMedBtn">Supprimer</button>
+      </form>
+
+      <button onclick="sendReport()">Envoyer le rapport à la direction</button>
+      <button onclick="exportToExcel()">Exporter en Excel</button>
+      <button onclick="exportToPDF()">Exporter en PDF</button>
+    </div>
+
+    <div class="footer">
+      <span id="footerText">© 2025 Centre Koweïtien - Interface Pharmacie</span>
+    </div>
+
+    <script>
+      const translations = {
+        fr: {
+          title: "Gestion Stock - Pharmacie",
+          listTitle: "Liste des Médicaments en Stock",
+          formTitle: "Ajouter un médicament",
+          medNameHeader: "Nom du médicament",
+          quantityHeader: "Quantité",
+          minThresholdHeader: "Seuil minimum",
+          statusHeader: "Statut",
+          addButton: "Ajouter",
+          deleteButton: "Supprimer",
+          reportButton: "Envoyer le rapport à la direction",
+          footerText: "© 2025 Centre Koweïtien - Interface Pharmacie",
+        },
+        ar: {
+          title: "إدارة المخزون - الصيدلية",
+          listTitle: "قائمة الأدوية في المخزون",
+          formTitle: "إضافة دواء",
+          medNameHeader: "اسم الدواء",
+          quantityHeader: "الكمية",
+          minThresholdHeader: "الحد الأدنى",
+          statusHeader: "الحالة",
+          addButton: "إضافة",
+          deleteButton: "حذف",
+          reportButton: "إرسال التقرير إلى الإدارة",
+          footerText: "© 2025 مركز الكويت - واجهة الصيدلية",
+        },
+      };
+
+      let stockData = [
+        { name: "Paracétamol 500mg", quantity: 15, minThreshold: 20 },
+        { name: "Amoxicilline 250mg", quantity: 30, minThreshold: 20 },
+        { name: "Ibuprofène 400mg", quantity: 8, minThreshold: 10 },
+        { name: "Vitamine C", quantity: 50, minThreshold: 25 },
+      ];
+
+      function renderStockTable() {
+        const tableBody = document.querySelector("#stockTable tbody");
+        tableBody.innerHTML = "";
+        stockData.forEach((med) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${med.name}</td>
+            <td>${med.quantity}</td>
+            <td>${med.minThreshold}</td>
+            <td class="${
+              med.quantity <= med.minThreshold ? "alert" : "stock-ok"
+            }">
+              ${
+                med.quantity <= med.minThreshold
+                  ? "⚠️ À réapprovisionner"
+                  : "✅ Stock suffisant"
+              }
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      document.getElementById("addMedBtn").addEventListener("click", () => {
+        const name = document.getElementById("medName").value;
+        const quantity = parseInt(document.getElementById("quantity").value);
+        const minThreshold = parseInt(
+          document.getElementById("minThreshold").value
+        );
+        stockData.push({ name, quantity, minThreshold });
+        renderStockTable();
+        document.getElementById("stockForm").reset();
+      });
+
+      document.getElementById("deleteMedBtn").addEventListener("click", () => {
+        const name = document.getElementById("medName").value;
+        stockData = stockData.filter((med) => med.name !== name);
+        renderStockTable();
+        document.getElementById("stockForm").reset();
+      });
+
+      function sendReport() {
+        const report = stockData
+          .map((med) => {
+            return `${med.name}: ${med.quantity} unités, Seuil: ${med.minThreshold}`;
+          })
+          .join("\n");
+        alert("Rapport envoyé à la direction :\n" + report);
+      }
+
+      function exportToExcel() {
+        const ws = XLSX.utils.json_to_sheet(stockData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Stock");
+        XLSX.writeFile(wb, "stock_data.xlsx");
+      }
+
+      function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        let y = 20;
+        stockData.forEach((med) => {
+          doc.text(
+            `Nom: ${med.name}, Quantité: ${med.quantity}, Seuil: ${med.minThreshold}`,
+            10,
+            y
+          );
+          y += 10;
+        });
+        doc.save("stock_data.pdf");
+      }
+
+      function switchLanguage(lang) {
+        document.querySelector("title").innerText = translations[lang].title;
+        document.getElementById("headerTitle").innerText =
+          translations[lang].title;
+        document.getElementById("listTitle").innerText =
+          translations[lang].listTitle;
+        document.getElementById("formTitle").innerText =
+          translations[lang].formTitle;
+        document.getElementById("medNameHeader").innerText =
+          translations[lang].medNameHeader;
+        document.getElementById("quantityHeader").innerText =
+          translations[lang].quantityHeader;
+        document.getElementById("minThresholdHeader").innerText =
+          translations[lang].minThresholdHeader;
+        document.getElementById("statusHeader").innerText =
+          translations[lang].statusHeader;
+        document.getElementById("addMedBtn").innerText =
+          translations[lang].addButton;
+        document.getElementById("deleteMedBtn").innerText =
+          translations[lang].deleteButton;
+        document.querySelector("button").innerText =
+          translations[lang].reportButton;
+        document.getElementById("footerText").innerText =
+          translations[lang].footerText;
+      }
+
+      renderStockTable();
+    </script>
+  </body>
+</html>
